@@ -28,13 +28,32 @@ for index, timing in enumerate(t[(t>t_lower_bound) & (t<t_upper_bound)]):
 # for index, timing in enumerate(t):
     # Faire un truc plus propre pour le delta_t que 0.05
     current_angle += (g[index]-K1)/K2 * 0.05
-    x = np.sin(current_angle)*z[index]
-    y = np.cos(current_angle)*z[index]
+    x = np.cos(current_angle)*z[index]
+    y = np.sin(current_angle)*z[index]
     point = np.array([[x, y]])
 
     points = np.append(points, point, axis=0)
 
-plt.scatter(points[:, 0], points[:, 1])
+# Question 1.3 : Localisation du robot dans la carte globale
+
+# Nettoyage de l'ensemble de points
+
+# Passage en coordonnées homogènes
+adjusted_points = np.hstack([points, np.ones((points.shape[0], 2))])
+
+# Application des matrices de transformation
+angle = 205
+radian_angle = np.radians(angle)
+translation_x = 11
+translation_y = 5.8
+
+adjusted_points = np.dot(adjusted_points,np.array([[np.cos(radian_angle),-np.sin(radian_angle),0,0],[np.sin(radian_angle),np.cos(radian_angle),0,0],[0,0,1,0],[0,0,0,1]]))
+adjusted_points = np.dot(adjusted_points,np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[translation_x,translation_y,0,1]]))
+
+plt.plot(Carte[0,:],Carte[1,:],'b')
+plt.plot(points[:,0], points[:, 1],'r')
+plt.plot(adjusted_points[:,0], adjusted_points[:, 1],'r')
+plt.axis('equal')
 plt.show()
 
 
@@ -48,7 +67,8 @@ plt.xlabel('Temps (s)')
 plt.tight_layout()
 plt.show()
 
-plt.plot(Carte[0,:],Carte[1,:],'b');
+plt.plot(Carte[0,:],Carte[1,:],'b')
+plt.plot(points[:,0], points[:, 1],'r')
 plt.xlabel('Coordonnées en x (m)')
 plt.ylabel('Coordonnées en y (m)')
 plt.axis('equal')
