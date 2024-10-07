@@ -66,26 +66,30 @@ adjusted_points = np.dot(
     ),
 )
 
+
+point_camera = [translation_x, translation_y]
+
 plt.plot(Carte[0, :], Carte[1, :], "b")
 plt.plot(adjusted_points[:, 0], adjusted_points[:, 1], "r.")
+plt.plot(point_camera[0], point_camera[1] , "r+")
 plt.axis("equal")
 plt.show()
 
 
-# plt.subplot(2, 1, 1)
-# plt.plot(t, z, linewidth=2)
-# plt.ylabel("Mesure telemetre (V)")
-# plt.subplot(2, 1, 2)
-# plt.plot(t, g, linewidth=2)
-# plt.ylabel("Mesure gyroscope (V)")
-# plt.xlabel("Temps (s)")
-# plt.tight_layout()
-# plt.show()
+plt.subplot(2, 1, 1)
+plt.plot(t, z, linewidth=2)
+plt.ylabel("Mesure telemetre (V)")
+plt.subplot(2, 1, 2)
+plt.plot(t, g, linewidth=2)
+plt.ylabel("Mesure gyroscope (V)")
+plt.xlabel("Temps (s)")
+plt.tight_layout()
+plt.show()
 
-# plt.plot(Carte[0, :], Carte[1, :], "b")
-# plt.plot(points[:, 0], points[:, 1], "r")
-# plt.xlabel("Coordonnées en x (m)")
-# plt.ylabel("Coordonnées en y (m)")
-# plt.axis("equal")
-# plt.savefig("environnement.png")
-# plt.show()
+plt.plot(Carte[0, :], Carte[1, :], "b")
+plt.plot(points[:, 0], points[:, 1], "r")
+plt.xlabel("Coordonnées en x (m)")
+plt.ylabel("Coordonnées en y (m)")
+plt.axis("equal")
+plt.savefig("environnement.png")
+plt.show()
