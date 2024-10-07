@@ -1,5 +1,6 @@
 import scipy.io as sc
 import numpy as np
+from scipy import integrate
 import matplotlib.pyplot as plt
 
 data = sc.loadmat("Q1Donnees.mat")
@@ -25,28 +26,27 @@ print("K1", K1, "K2", K2)
 
 points = np.empty((0, 2))
 current_angle = 0
-for index, timing in enumerate(t[(t > t_lower_bound) & (t < t_upper_bound)]):
-    # for index, timing in enumerate(t):
+for index, timing in enumerate(t):
     # Faire un truc plus propre pour le delta_t que 0.05
-    current_angle += (g[index] - K1) / K2 * 0.05
-    x = np.cos(current_angle) * z[index]
-    y = np.sin(current_angle) * z[index]
-    point = np.array([[x, y]])
 
-    points = np.append(points, point, axis=0)
+    current_angle += (g[index] - K1) / K2 * 0.05
+    if 1 / z[index] < 4:
+        x = np.cos(current_angle) * 1 / z[index]
+        y = np.sin(current_angle) * 1 / z[index]
+        point = np.array([[x, y]])
+
+        points = np.append(points, point, axis=0)
 
 # Question 1.3 : Localisation du robot dans la carte globale
-
-# Nettoyage de l'ensemble de points
 
 # Passage en coordonnées homogènes
 adjusted_points = np.hstack([points, np.ones((points.shape[0], 2))])
 
 # Application des matrices de transformation
-angle = 205
+angle = 30
 radian_angle = np.radians(angle)
-translation_x = 11
-translation_y = 5.8
+translation_x = 3
+translation_y = 4.9
 
 adjusted_points = np.dot(
     adjusted_points,
@@ -67,26 +67,25 @@ adjusted_points = np.dot(
 )
 
 plt.plot(Carte[0, :], Carte[1, :], "b")
-plt.plot(points[:, 0], points[:, 1], "r")
-plt.plot(adjusted_points[:, 0], adjusted_points[:, 1], "r")
+plt.plot(adjusted_points[:, 0], adjusted_points[:, 1], "r.")
 plt.axis("equal")
 plt.show()
 
 
-plt.subplot(2, 1, 1)
-plt.plot(t, z, linewidth=2)
-plt.ylabel("Mesure telemetre (V)")
-plt.subplot(2, 1, 2)
-plt.plot(t, g, linewidth=2)
-plt.ylabel("Mesure gyroscope (V)")
-plt.xlabel("Temps (s)")
-plt.tight_layout()
-plt.show()
+# plt.subplot(2, 1, 1)
+# plt.plot(t, z, linewidth=2)
+# plt.ylabel("Mesure telemetre (V)")
+# plt.subplot(2, 1, 2)
+# plt.plot(t, g, linewidth=2)
+# plt.ylabel("Mesure gyroscope (V)")
+# plt.xlabel("Temps (s)")
+# plt.tight_layout()
+# plt.show()
 
-plt.plot(Carte[0, :], Carte[1, :], "b")
-plt.plot(points[:, 0], points[:, 1], "r")
-plt.xlabel("Coordonnées en x (m)")
-plt.ylabel("Coordonnées en y (m)")
-plt.axis("equal")
-plt.savefig("environnement.png")
-plt.show()
+# plt.plot(Carte[0, :], Carte[1, :], "b")
+# plt.plot(points[:, 0], points[:, 1], "r")
+# plt.xlabel("Coordonnées en x (m)")
+# plt.ylabel("Coordonnées en y (m)")
+# plt.axis("equal")
+# plt.savefig("environnement.png")
+# plt.show()
