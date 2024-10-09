@@ -2,6 +2,7 @@ import scipy.io as sc
 from scipy.optimize import fmin
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 
 # Question 2.1 : Génération d'une image
 L1 = np.array([-0.4, 0, 2.4])
@@ -81,53 +82,84 @@ print(pose_solution)
 
 # Question 2.3 : Impact d'une erreur d'association de données
 
-pose_camera = [0,0,-3]
+pose_camera = [0, 0, -3]
 
 # Inversion de L2 et L3
 false_L2 = L3
 false_L3 = L2
 
 # Calcul des angles entre caméra et points
-vect_L1 = [L1[0]-pose_camera[0], L1[2]-pose_camera[2]]
-vect_L2 = [false_L2[0]-pose_camera[0], false_L2[2]-pose_camera[2]]
-vect_L3 = [false_L3[0]-pose_camera[0], false_L3[2]-pose_camera[2]]
+vect_L1 = [L1[0] - pose_camera[0], L1[2] - pose_camera[2]]
+vect_L2 = [false_L2[0] - pose_camera[0], false_L2[2] - pose_camera[2]]
+vect_L3 = [false_L3[0] - pose_camera[0], false_L3[2] - pose_camera[2]]
 
-cos_angle_L1_L2 = np.dot(vect_L1, vect_L2) / (np.linalg.norm(vect_L1) * np.linalg.norm(vect_L2))
+cos_angle_L1_L2 = np.dot(vect_L1, vect_L2) / (
+    np.linalg.norm(vect_L1) * np.linalg.norm(vect_L2)
+)
 angle_L1_L2 = np.arccos(cos_angle_L1_L2)
 
-cos_angle_L2_L3 = np.dot(vect_L2, vect_L3) / (np.linalg.norm(vect_L2) * np.linalg.norm(vect_L3))
+cos_angle_L2_L3 = np.dot(vect_L2, vect_L3) / (
+    np.linalg.norm(vect_L2) * np.linalg.norm(vect_L3)
+)
 angle_L2_L3 = np.arccos(cos_angle_L2_L3)
 
 # Calcul des distances entre points
-d_L1_L2 = np.linalg.norm([false_L2[0]-L1[0], false_L2[2]-L1[2]])
-d_L2_L3 = np.linalg.norm([false_L2[0]-false_L3[0], false_L2[2]-false_L3[2]])
+d_L1_L2 = np.linalg.norm([false_L2[0] - L1[0], false_L2[2] - L1[2]])
+d_L2_L3 = np.linalg.norm([false_L2[0] - false_L3[0], false_L2[2] - false_L3[2]])
 
 # Calcul des hauteurs
-h_L1_L2 = d_L1_L2/(2*np.tan(angle_L1_L2))
-h_L2_L3 = d_L2_L3/(2*np.tan(angle_L2_L3))
+h_L1_L2 = d_L1_L2 / (2 * np.tan(angle_L1_L2))
+h_L2_L3 = d_L2_L3 / (2 * np.tan(angle_L2_L3))
 
 # Calcul des médiatrices
-point_median_L1_L2 = [(L1[0]+false_L2[0])/2, (L1[2]+false_L2[2])/2]
-point_median_L2_L3 = [(false_L3[0]+false_L2[0])/2, (false_L3[2]+false_L2[2])/2]
+point_median_L1_L2 = [(L1[0] + false_L2[0]) / 2, (L1[2] + false_L2[2]) / 2]
+point_median_L2_L3 = [(false_L3[0] + false_L2[0]) / 2, (false_L3[2] + false_L2[2]) / 2]
 
-pente_L1_L2 = (false_L2[2]-L1[2])/(false_L2[0]/L1[0])
-pente_L2_L3 = (false_L3[2]-false_L2[2])/(false_L3[0]/false_L2[0])
+if false_L2[2] == L1[2]:
+    pente_L1_L2 = None
+else:
+    pente_L1_L2 = (false_L2[2] - L1[2]) / (false_L2[0] - L1[0])
 
-pente_med_L1_L2 = -1/pente_L1_L2
-pente_med_L2_L3 = -1/pente_L2_L3
+if false_L2[2] == false_L3[2]:
+    pente_L2_L3 = None
+else:
+    pente_L2_L3 = (false_L3[2] - false_L2[2]) / (false_L3[0] - false_L2[0])
 
+if pente_L1_L2 is None:
+    pente_med_L1_L2 = 0
+else:
+    pente_med_L1_L2 = -1 / pente_L1_L2
+
+if pente_L2_L3 is None:
+    pente_med_L2_L3 = 0
+else:
+    pente_med_L2_L3 = -1 / pente_L2_L3
+
+vect_med_L1_L2 = np.array([pente_med_L1_L2, 1])
+vect_med_L2_L3 = np.array([pente_med_L2_L3, 1])
+
+vect_unit_med_L1_L2 = vect_med_L1_L2/np.linalg.norm(vect_med_L1_L2)
+vect_unit_med_L2_L3 = vect_med_L2_L3/np.linalg.norm(vect_med_L2_L3)
+
+centre_cercle_L1_L2 = point_median_L1_L2-vect_unit_med_L1_L2*h_L1_L2
+centre_cercle_L2_L3 = point_median_L2_L3-vect_unit_med_L2_L3*h_L2_L3
+
+plt.plot(centre_cercle_L1_L2[0], centre_cercle_L1_L2[1], "r.")
+plt.plot(centre_cercle_L2_L3[0], centre_cercle_L2_L3[1], "r.")
+
+rayon_cercle_L1_L2 = np.linalg.norm(centre_cercle_L1_L2, false_L2)
+rayon_cercle_L2_L3 = np.linalg.norm(centre_cercle_L2_L3, false_L2)
 
 
 # Question 2.4 : Impact du bruit sur l'estimation des repères via une approche de type Monte Carlo
 
-plt.plot(L1[0],L1[2],"r+")
-plt.plot(point_median_L1_L2[0],point_median_L1_L2[1],"r+")
-plt.plot(point_median_L2_L3[0],point_median_L2_L3[1],"r+")
-plt.plot(L2[0],L2[2],"r+")
-plt.plot(L3[0],L3[2],"r+")
-plt.plot(CAM[0],CAM[2],"r+")
+plt.plot(L1[0], L1[2], "r+")
+plt.plot(point_median_L1_L2[0], point_median_L1_L2[1], "r+")
+plt.plot(point_median_L2_L3[0], point_median_L2_L3[1], "r+")
+plt.plot(L2[0], L2[2], "r+")
+plt.plot(L3[0], L3[2], "r+")
+plt.plot(CAM[0], CAM[2], "r+")
 plt.show()
 
 # for i in range(1,7):
 #     for _ in range(1000):
-
