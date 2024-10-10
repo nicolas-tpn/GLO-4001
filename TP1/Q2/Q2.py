@@ -10,11 +10,9 @@ L2 = np.array([0, 0, 2])
 L3 = np.array([0.4, 0, 2.4])
 CAM = np.array([0, 0, -3])
 
-
 def reprojection(H, focale, L):
 
     # Passage des points en coordonnées homogènes
-
     if L.ndim == 1:
         L = L.reshape(1, -1)
     L = np.hstack([L, np.ones((L.shape[0], 1))])
@@ -27,6 +25,7 @@ def reprojection(H, focale, L):
     y = H[1]
     z = H[2]
     theta = H[3]
+
     matrice_extrinseque = np.array(
         [
             [np.cos(theta), 0, np.sin(theta), -x],
@@ -39,7 +38,7 @@ def reprojection(H, focale, L):
     C = np.empty((0, 4))
 
     for Li in L:
-        new_line = matrice_extrinseque @ matrice_intrinseque @ Li
+        new_line = matrice_intrinseque @ matrice_extrinseque @ Li
         new_line = new_line.reshape(1, -1)
         C = np.vstack([C, new_line])
 
@@ -47,7 +46,6 @@ def reprojection(H, focale, L):
 
 
 # Question 2.2 : Localisation par la minimisation de l'erreur de reprojection
-
 
 def somme_des_residuels_au_carre(pose_camera, focale, L, C):
     # pose_camera de la forme : [x,z,theta]
@@ -147,8 +145,8 @@ centre_cercle_L2_L3 = point_median_L2_L3-vect_unit_med_L2_L3*h_L2_L3
 plt.plot(centre_cercle_L1_L2[0], centre_cercle_L1_L2[1], "r.")
 plt.plot(centre_cercle_L2_L3[0], centre_cercle_L2_L3[1], "r.")
 
-rayon_cercle_L1_L2 = np.linalg.norm(centre_cercle_L1_L2, false_L2)
-rayon_cercle_L2_L3 = np.linalg.norm(centre_cercle_L2_L3, false_L2)
+# rayon_cercle_L1_L2 = np.linalg.norm(centre_cercle_L1_L2, false_L2)
+# rayon_cercle_L2_L3 = np.linalg.norm(centre_cercle_L2_L3, false_L2)
 
 
 # Question 2.4 : Impact du bruit sur l'estimation des repères via une approche de type Monte Carlo
