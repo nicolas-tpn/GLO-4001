@@ -145,9 +145,8 @@ centre_cercle_L2_L3 = point_median_L2_L3-vect_unit_med_L2_L3*h_L2_L3
 plt.plot(centre_cercle_L1_L2[0], centre_cercle_L1_L2[1], "r.")
 plt.plot(centre_cercle_L2_L3[0], centre_cercle_L2_L3[1], "r.")
 
-# rayon_cercle_L1_L2 = np.linalg.norm(centre_cercle_L1_L2, false_L2)
-# rayon_cercle_L2_L3 = np.linalg.norm(centre_cercle_L2_L3, false_L2)
-
+rayon_cercle_L1_L2 = np.linalg.norm([centre_cercle_L1_L2, np.array([false_L2[0], false_L2[2]])])
+rayon_cercle_L2_L3 = np.linalg.norm([centre_cercle_L2_L3, np.array([false_L2[0], false_L2[2]])])
 
 # Question 2.4 : Impact du bruit sur l'estimation des repères via une approche de type Monte Carlo
 
