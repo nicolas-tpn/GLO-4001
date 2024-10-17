@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import scipy as sp
 
+# infos : pour la librairie bokeh, installer la version 2.4.0 pour des questions de compatibilité
 from lib.visualization import plotting
 from lib.visualization.video import play_trip
 
@@ -29,13 +30,14 @@ def apply_Lowe_test(matches, threshold):
         for m, n in matches:
             # utiliser les valeur de m.distance et n.distance pour faire un test de Lowe
             # En ce moment, tous les matchs vont être retournés.
-            good.append(m)
+            if m.distance/n.distance < threshold:
+                good.append(m)
     except ValueError:
         pass
     return good
 
 # fonction pour faire la vérification mutuelle
-def apply_cross_check(matchs_1_vers_2,matchs_2_vers_1):
+def apply_cross_check(matchs_1_vers_2, matchs_2_vers_1):
     # ici il faut utiliser les .trainIdx et .queryIdx des matchs pour trouver
     # ceux qui sont mutuellement voisins.
     mutual_good = []
@@ -154,6 +156,7 @@ class VisualOdometry():
 
         # Faire l'appariement
         matches1 = self.flann.knnMatch(des1, des2, k=2)
+        matches2 = self.flann.knnMatch(des2, des1, k=2)
 
         # Appliquer le test de Lowe avec un ratio de 0.7
         good = apply_Lowe_test(matches1, 0.7)

@@ -29,6 +29,7 @@ current_angle = 0
 for index, timing in enumerate(t):
     # Faire un truc plus propre pour le delta_t que 0.05
 
+    # et le cas où le robot ne détecte pas d'obstacle on doit pas le vérifier avec une condition ?
     current_angle += (g[index] - K1) / K2 * 0.05
     if 1 / z[index] < 4:
         x = np.cos(current_angle) * 1 / z[index]
