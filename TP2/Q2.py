@@ -9,15 +9,14 @@ import tqdm
 x = np.array([0, 1.5])
 delta_t = 0.5
 sigma_x2 = 2**2
-sigma_x_dot_2 = 0.02**2
-sigma_x_x_dot = 0.02 * 2
+sigma_x_dot_2 = 0.2**2
+sigma_x_x_dot = 0.2 * 2
 z = 0.2
 
 P = np.array([[sigma_x2, sigma_x_x_dot], [sigma_x_x_dot, sigma_x_dot_2]])
 P0 = np.array([[sigma_x2, sigma_x_x_dot], [sigma_x_x_dot, sigma_x_dot_2]])
-matrix_lambda = np.array([[0.2/182.25*10**-3, 0]])
+matrix_lambda = np.array([[0.2*10**3/182.25, 0]])
 Cw = 25*10**-6
-
 
 phi = np.array([[1, delta_t], [0, 1]])
 
