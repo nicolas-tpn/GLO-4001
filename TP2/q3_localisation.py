@@ -43,11 +43,11 @@ if __name__ == '__main__':
     lidar_measurements = trajectory_data['Lidar']
 
     # parameters
-    ray_length = 
-    s_lidar = 
-    s_v = 
-    s_omega = 
-    s_compas = 
+    ray_length = 20
+    s_lidar = 0.01
+    s_v = 0.01
+    s_omega = 0.05
+    s_compas = 0.01
     n_step = y_pose.shape[0] - 1
     # TODO change to show progress
     show_progress = True
@@ -59,13 +59,37 @@ if __name__ == '__main__':
     r_eff =   # TODO parameter to tune
 
     for step in tqdm.tqdm(range(n_step)):
-        lidar_reading = 
+        lidar_reading = rc.fast_four_way_raycast(map_polygon, np.array([poses.xPose, poses.yPose]), angles_pose, ray_length)
+        angle = angles_pose + np.random.normal(0, s_angle)
+        
+        particles = np.array([[]])
         for particle_idx in range(num_particles):
+            
             # simulate motion
+            noise_v = np.random.normal(0, s_v, 1)
+            x_sim = x_pose + (v+noise_v)*np.cos(angles_pose)*dt
+            y_sim = y_pose + (v+noise_v)*np.sin(angles_pose)*dt
+            np.append(particles, np.array([x_sim, y_sim]))
+            
+        # measurement update
+        
+        # on a les 4 points de touche des rayons Lidar, on va calculer le point d'intersection des deux droites des points opposés pour situer le robot
+        x1, y1 = lidar_reading[0]
+        x2, y2 = lidar_reading[1]
+        x3, y3 = lidar_reading[2]
+        x4, y4 = lidar_reading[3]
+        
+        m1 = (y3 - y1) / (x3 - x1)
+        m2 = (y4 - y2) / (x4 - x2)
+        b1 = y1 - m1 * x1 
+        b2 = y2 - m2 * x2
+        
+        x_robot = (b2 - b1) / (m1 - m2) 
+        y_robot = m1 * x_robot + b1
 
-            # measurement update
-
-            # p(z|x)
+        # p(z|x)
+        for particles_idx in range(num_particles):
+            
 
         # normalize weights
 
