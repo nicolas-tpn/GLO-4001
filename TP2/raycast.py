@@ -162,7 +162,7 @@ def fast_four_way_raycast(m: np.ndarray, pos: np.ndarray, angle: float, ray_leng
     # left/right buffer
     is_left = np.dot((m - pos[..., None]).T, left) > 0
     is_right = 1 - is_left
-
+    
     # throw 4 rays, reuse position matrices to save compute
     hits = [_fast_four_helper(is_forward, is_left, m, pos, pos + forward * ray_length),  # forward
             _fast_four_helper(is_left, is_backward, m, pos, pos + left * ray_length),  # left

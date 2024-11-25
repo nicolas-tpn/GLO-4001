@@ -26,11 +26,11 @@ def norm_pdf(x, mu, sigma):
 
 if __name__ == '__main__':
     # load map
-    map_data = scio.loadmat('data/Carte.mat')
+    map_data = scio.loadmat('Carte.mat')
     map_polygon = map_data['Carte']
-
+    
     # load trajectory data
-    trajectory_data = scio.loadmat('data/Q2Trajectoire.mat')
+    trajectory_data = scio.loadmat('Q2Trajectoire.mat')
 
     dt = trajectory_data['dT'].item()
     x_pose = trajectory_data['xPose'].squeeze()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # parameters
     ray_length = 20
     s_lidar = 0.01
-    s_v = 0.01
+    s_v = 3
     s_omega = 0.05
     s_compas = 0.01
     n_step = y_pose.shape[0] - 1
@@ -54,30 +54,26 @@ if __name__ == '__main__':
     show_every = 10
 
     # parameters to tune
-    s_angle =   # TODO parameter to tune
-    num_particles =   # TODO parameter to tune
-    r_eff =   # TODO parameter to tune
-
+    s_angle = 0.4  # TODO parameter to tune
+    num_particles = 100  # TODO parameter to tune
+    r_eff = 0.1 # TODO parameter to tune
+    weights = np.zeros(num_particles)
+    
+    manager = plt.get_current_fig_manager()
+    manager.full_screen_toggle()
+    
     for step in tqdm.tqdm(range(n_step)):
-        lidar_reading = rc.fast_four_way_raycast(map_polygon, np.array([poses.xPose, poses.yPose]), angles_pose, ray_length)
+        lidar_reading = rc.fast_four_way_raycast(map_polygon, np.array([x_pose[step], y_pose[step]]), angles_pose[step], ray_length)
         angle = angles_pose + np.random.normal(0, s_angle)
         
-        particles = np.array([[]])
-        for particle_idx in range(num_particles):
-            
-            # simulate motion
-            noise_v = np.random.normal(0, s_v, 1)
-            x_sim = x_pose + (v+noise_v)*np.cos(angles_pose)*dt
-            y_sim = y_pose + (v+noise_v)*np.sin(angles_pose)*dt
-            np.append(particles, np.array([x_sim, y_sim]))
-            
-        # measurement update
+        particles = []
         
         # on a les 4 points de touche des rayons Lidar, on va calculer le point d'intersection des deux droites des points opposés pour situer le robot
-        x1, y1 = lidar_reading[0]
-        x2, y2 = lidar_reading[1]
-        x3, y3 = lidar_reading[2]
-        x4, y4 = lidar_reading[3]
+        
+        x1, y1 = np.min(lidar_reading[0], axis=1)
+        x2, y2 = np.min(lidar_reading[1], axis=1)
+        x3, y3 = np.min(lidar_reading[2], axis=1)
+        x4, y4 = np.min(lidar_reading[3], axis=1)
         
         m1 = (y3 - y1) / (x3 - x1)
         m2 = (y4 - y2) / (x4 - x2)
@@ -86,15 +82,32 @@ if __name__ == '__main__':
         
         x_robot = (b2 - b1) / (m1 - m2) 
         y_robot = m1 * x_robot + b1
-
-        # p(z|x)
-        for particles_idx in range(num_particles):
+        
+        for particle_idx in range(num_particles):
             
+            # simulate motion
+            # x_sim = x_pose[step] + (v[step]+np.random.normal(0, s_v, 1))*np.cos(angles_pose[step])*dt
+            x_sim = x_robot + (v[step]+np.random.normal(0, s_v, 1))*np.cos(angles_pose[step])*dt
+            # y_sim = y_pose[step] + (v[step]+np.random.normal(0, s_v, 1))*np.sin(angles_pose[step])*dt
+            y_sim = y_robot + (v[step]+np.random.normal(0, s_v, 1))*np.sin(angles_pose[step])*dt
+            particles.append([x_sim, y_sim])
+            # measurement update
+            
+            # p(z|x)
+            value = (1 / np.sqrt(2 * np.pi * r_eff**2)) * np.exp((-np.sum((np.array([x_robot, y_robot]) - np.array([x_sim, y_sim]))**2)) / (2 * r_eff**2))
+            weights[particle_idx] = value
 
         # normalize weights
-
+        for weight in weights:
+            weight = weight/np.sum(weights)
+        
+        particles = np.array(particles)
+        particles = particles.squeeze()
+        
         # apply resampling if necessary
-
+        
+        # FAIRE DU RE ECHANTILLONNAGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        
         if show_progress and step % show_every == 0:
             plt.clf()
             plt.title(f'Step {step}')
@@ -103,9 +116,15 @@ if __name__ == '__main__':
             plt.axis('equal')
 
             plt.plot(map_polygon[0, :], map_polygon[1, :], 'k-')
-            plt.scatter(particles[0, :], particles[1, :], c=weights, cmap='gray', s=2, alpha=0.5)
+            plt.scatter(x1, y1, color='green')
+            plt.scatter(x3, y3, color='green')
+            plt.scatter(x2, y2, color='green')
+            plt.scatter(x4, y4, color='green')
+            plt.scatter(x_robot, y_robot, color='red')
+            plt.scatter(particles[:, 0], particles[:, 1], c=weights, cmap='hot', s=2, alpha=0.5)
+            plt.colorbar()
             plt.plot(x_pose, y_pose, 'r-', label='ground truth')
-            plt.plot(positions[0, :step], positions[1, :step], 'b-', label='estimated')
+            # plt.plot(positions[0, :step], positions[1, :step], 'b-', label='estimated')
 
             plt.legend()
             plt.pause(1e-9)
@@ -117,7 +136,7 @@ if __name__ == '__main__':
 
     plt.plot(map_polygon[0, :], map_polygon[1, :], 'k-')
     plt.plot(x_pose, y_pose, 'r-', label='ground truth')
-    plt.plot(positions[0, 20:], positions[1, 20:], 'b-', label='estimated')
+    # plt.plot(positions[0, 20:], positions[1, 20:], 'b-', label='estimated')
 
     plt.legend()
     plt.show()

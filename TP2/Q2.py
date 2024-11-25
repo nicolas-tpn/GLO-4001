@@ -26,9 +26,9 @@ table = np.empty((0, 4))
 x_hat = x
 
 # Question 2.4
-# z = 5
-# matrix_lambda = np.array([[0, 1]])
-# Cw = 0.01
+z = 5
+matrix_lambda = np.array([[0, 1]])
+Cw = 0.01
 
 
 for i in range(300):
