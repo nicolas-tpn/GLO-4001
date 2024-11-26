@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # parameters
     ray_length = 20
     s_lidar = 0.01
-    s_v = 3
+    s_v = 0.2
     s_omega = 0.05
     s_compas = 0.01
     n_step = y_pose.shape[0] - 1
@@ -55,21 +55,21 @@ if __name__ == '__main__':
 
     # parameters to tune
     s_angle = 0.4  # TODO parameter to tune
-    num_particles = 100  # TODO parameter to tune
+    num_particles = 200  # TODO parameter to tune
     r_eff = 0.1 # TODO parameter to tune
-    weights = np.zeros(num_particles)
     
     manager = plt.get_current_fig_manager()
     manager.full_screen_toggle()
+    
+    particles = np.zeros((num_particles, 2))
+    weights = np.zeros(num_particles)
+    positions = np.zeros((n_step, 2))
     
     for step in tqdm.tqdm(range(n_step)):
         lidar_reading = rc.fast_four_way_raycast(map_polygon, np.array([x_pose[step], y_pose[step]]), angles_pose[step], ray_length)
         angle = angles_pose + np.random.normal(0, s_angle)
         
-        particles = []
-        
         # on a les 4 points de touche des rayons Lidar, on va calculer le point d'intersection des deux droites des points opposés pour situer le robot
-        
         x1, y1 = np.min(lidar_reading[0], axis=1)
         x2, y2 = np.min(lidar_reading[1], axis=1)
         x3, y3 = np.min(lidar_reading[2], axis=1)
@@ -82,20 +82,26 @@ if __name__ == '__main__':
         
         x_robot = (b2 - b1) / (m1 - m2) 
         y_robot = m1 * x_robot + b1
+
+        # # initialisation de particles
+        if step == 0:
+            particles[:, 0] = x_robot
+            particles[:, 1] = y_robot
         
         for particle_idx in range(num_particles):
             
             # simulate motion
-            # x_sim = x_pose[step] + (v[step]+np.random.normal(0, s_v, 1))*np.cos(angles_pose[step])*dt
-            x_sim = x_robot + (v[step]+np.random.normal(0, s_v, 1))*np.cos(angles_pose[step])*dt
-            # y_sim = y_pose[step] + (v[step]+np.random.normal(0, s_v, 1))*np.sin(angles_pose[step])*dt
-            y_sim = y_robot + (v[step]+np.random.normal(0, s_v, 1))*np.sin(angles_pose[step])*dt
-            particles.append([x_sim, y_sim])
+            
+            x_sim = particles[particle_idx][0] + (v[step]+np.random.normal(0, s_v, 1))*np.cos(angles_pose[step])*dt
+            y_sim = particles[particle_idx][1] + (v[step]+np.random.normal(0, s_v, 1))*np.sin(angles_pose[step])*dt
+            
             # measurement update
+            particles[particle_idx][0] = x_sim
+            particles[particle_idx][1] = y_sim
             
             # p(z|x)
             value = (1 / np.sqrt(2 * np.pi * r_eff**2)) * np.exp((-np.sum((np.array([x_robot, y_robot]) - np.array([x_sim, y_sim]))**2)) / (2 * r_eff**2))
-            weights[particle_idx] = value
+            weights[particle_idx] *= value
 
         # normalize weights
         for weight in weights:
@@ -104,9 +110,12 @@ if __name__ == '__main__':
         particles = np.array(particles)
         particles = particles.squeeze()
         
-        # apply resampling if necessary
+        x_mean = np.average(particles[:, 0])
+        y_mean = np.average(particles[:, 1])
+        positions[step][0] = x_mean
+        positions[step][1] = y_mean
         
-        # FAIRE DU RE ECHANTILLONNAGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        # apply resampling if necessary
         
         if show_progress and step % show_every == 0:
             plt.clf()
@@ -124,7 +133,7 @@ if __name__ == '__main__':
             plt.scatter(particles[:, 0], particles[:, 1], c=weights, cmap='hot', s=2, alpha=0.5)
             plt.colorbar()
             plt.plot(x_pose, y_pose, 'r-', label='ground truth')
-            # plt.plot(positions[0, :step], positions[1, :step], 'b-', label='estimated')
+            plt.plot(positions[:step, 0], positions[:step, 1], 'b-', label='estimated')
 
             plt.legend()
             plt.pause(1e-9)

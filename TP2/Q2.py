@@ -59,9 +59,9 @@ cov = table[:, 2]
 vit = table[:, 3]  
 
 plt.figure(figsize=(8, 6))  
-plt.plot(index, pos, label="Position", marker='o')
-plt.plot(index, cov, label="Covariance", marker='s')
-plt.plot(index, vit, label="Vitesse", marker='^')
+plt.plot(index, pos, label="Position", color='blue')
+plt.plot(index, cov, label="Covariance", color='green')
+plt.plot(index, vit, label="Vitesse", color='red')
 
 plt.title("Courbes des trois valeurs en fonction de l'index")
 plt.xlabel("Index")
