@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     # parameters
     ray_length = 20
-    s_lidar = 0.01
+    s_lidar = 0.5
     s_v = 0.2
     s_omega = 0.05
     s_compas = 0.01
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     manager.full_screen_toggle()
     
     particles = np.zeros((num_particles, 2))
-    weights = np.zeros(num_particles)
+    weights = np.ones(num_particles)
     positions = np.zeros((n_step, 2))
     
     for step in tqdm.tqdm(range(n_step)):
@@ -100,12 +100,14 @@ if __name__ == '__main__':
             particles[particle_idx][1] = y_sim
             
             # p(z|x)
-            value = (1 / np.sqrt(2 * np.pi * r_eff**2)) * np.exp((-np.sum((np.array([x_robot, y_robot]) - np.array([x_sim, y_sim]))**2)) / (2 * r_eff**2))
+            value = (1 / np.sqrt(2 * np.pi * s_lidar**2)) * np.exp((-np.sum((np.array([x_robot, y_robot]) - np.array([x_sim, y_sim]))**2)) / (2 * s_lidar**2))
             weights[particle_idx] *= value
 
         # normalize weights
         for weight in weights:
             weight = weight/np.sum(weights)
+            
+        print(weights)
         
         particles = np.array(particles)
         particles = particles.squeeze()
@@ -116,6 +118,24 @@ if __name__ == '__main__':
         positions[step][1] = y_mean
         
         # apply resampling if necessary
+        # N = len(weights)
+        # indexes = np.zeros(N, dtype=int)
+        # pos = (np.arange(N) + np.random.uniform(0, 1)) / N
+        # Q = np.cumsum(weights)
+        
+        # i = 0
+        # j = 0
+        
+        # while i and j < N:
+        #     if pos[i] < Q[j]:
+        #         indexes[i] = j
+        #         i += 1
+        #     else:
+        #         j += 1
+        
+        # particles[:] = particles[indexes]
+        # weights.fill(1.0 / len(weights))
+        
         
         if show_progress and step % show_every == 0:
             plt.clf()
