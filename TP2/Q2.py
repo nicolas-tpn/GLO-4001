@@ -42,7 +42,7 @@ for i in range(300):
         # étape de mise à jour
 
         # Question 2.3.4
-        P = np.array([[P[0][0], 0], [0, P[1][1]]])
+        # P = np.array([[P[0][0], 0], [0, P[1][1]]])
 
         z_hat = matrix_lambda @ x_hat # 3
         r = z - z_hat # 4
